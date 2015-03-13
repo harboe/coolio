@@ -1,0 +1,9 @@
+<!-- Nav tabs -->
+<ul class="nav nav-tabs" data-bind="foreach: groups">
+	<li><a data-toggle="tab" data-bind="text: name, hash: id, toggle"></a></li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content" data-bind="foreach: groups">
+	<div class="tab-pane" data-bind="template: { name: 'group', data: $data}, id: id"></div>
+</div>

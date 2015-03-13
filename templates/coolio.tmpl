@@ -1,0 +1,28 @@
+(function(win, doc, ko) {
+
+	var templates = {
+	{{ range $key, $val := .Templates}}
+		'{{$key}}': '{{$val}}',
+	{{ end}}
+	};
+
+	var coolioLayout = {{.Layout}};
+
+	{{ range $js := .Javascript}}
+	{{$js}}
+	{{ end }}
+
+	$().ready(function() {
+		var b = $('body'), viewModel = new GroupViewModel(coolioLayout);
+
+		b.append('<div id="coolio" class="container" data-bind="template: { name: type, data: $data }"></div>');
+
+		for (var t in templates) {
+			b.append('<template id="' + t + '">' + templates[t] + '</template>');
+		}
+
+		var elm = doc.getElementById('coolio');
+		ko.applyBindings(viewModel, elm);
+	});
+
+})(window, document, ko);

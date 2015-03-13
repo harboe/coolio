@@ -1,0 +1,28 @@
+# root group
+#type: bootstrap
+params:
+  - id: SupplierName
+    desc: Supplier Name
+groups:
+  - name: Supplier Numbers
+    type: inline
+    params:
+      - id: SuppNoDk
+      - id: SuppNoIN
+      - id: SuppNoES
+      - id: SuppNoUS
+  - name: hey tabs
+    type: tabs
+    groups:
+    - id: iso
+      name: ISO 9000
+      params:
+      - id: ApprovedBy
+        name: Approved By
+        type: typeahead
+        aux:
+          source: someurl
+    - id: otherTab
+      name: other tab
+    - id: anotherTab
+      name: another tab
