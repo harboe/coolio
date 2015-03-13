@@ -20,6 +20,9 @@ ko.bindingHandlers.toggle = {
 
 				e.preventDefault();
 			});
+		} else if (toggle === 'tooltip') {
+			$elm.tooltip();
+			console.log('hay...!');
 		}
 	}
 };

@@ -15,3 +15,20 @@ type (
 		Aux         map[string]string `yaml:",flow,omitempty" json:"aux,omitempty"`
 	}
 )
+
+func (g Group) AllParameters() (p []Parameter) {
+	recursive(&p, g)
+	return p
+}
+
+func recursive(list *[]Parameter, g Group) {
+	for _, p := range g.Parameters {
+		if len(p.Id) > 0 {
+			*list = append(*list, p)
+		}
+	}
+
+	for _, val := range g.Groups {
+		recursive(list, val)
+	}
+}

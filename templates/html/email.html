@@ -1,7 +1,7 @@
 <div class="form-group">
-	<label class="col-sm-4" data-bind="attr:{ 'for': id}, text: name"></label>
+	<!-- ko template: { name: 'label', data: $data } -->
+	<!-- /ko -->
 	<div class="col-sm-8">
-		<param params="type: 'email', data: $data"></param>
 		<input type="email" class="form-control" data-bind="placeholder: desc" />
 	</div>
 </div>

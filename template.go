@@ -18,6 +18,7 @@ type coolioViewModel struct {
 	Templates  map[string]template.HTML
 	Javascript []template.HTML
 	Layout     template.HTML
+	Parameters []Parameter
 }
 
 func loadCoolio() (*template.Template, coolioViewModel) {
@@ -49,8 +50,14 @@ func GenerateJS(w io.Writer, g Group) error {
 
 	coolio, vm := loadCoolio()
 	vm.Layout = template.HTML(js)
+	vm.Parameters = g.AllParameters()
 
 	return coolio.Execute(w, vm)
+}
+
+func Sharepoint(w io.Writer, view string) error {
+	t := template.Must(template.ParseFiles(templateDir + "/sharepoint.tmpl"))
+	return t.Execute(w, view)
 }
 
 func Debug(w io.Writer, view string) error {

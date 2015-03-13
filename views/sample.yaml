@@ -3,6 +3,9 @@
 params:
   - id: SupplierName
     desc: Supplier Name
+  - name: Supplier Address
+    type: address
+    help: bla bla bla
 groups:
   - name: Supplier Numbers
     type: inline
@@ -26,3 +29,17 @@ groups:
       name: other tab
     - id: anotherTab
       name: another tab
+      params:
+      - name: Email
+        type: email
+      - name: Numbers
+        type: number
+        aux:
+          min: 0
+          max: 10
+          step: 2
+      - name: Lenght
+        type: text
+        aux:
+          minLenght: 2
+          maxLength: 4
