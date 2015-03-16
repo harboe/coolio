@@ -8,7 +8,6 @@ params:
     help: bla bla bla
 groups:
   - name: Supplier Numbers
-    type: inline
     params:
       - id: SuppNoDk
       - id: SuppNoIN

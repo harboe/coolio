@@ -22,7 +22,7 @@ ko.bindingHandlers.toggle = {
 			});
 		} else if (toggle === 'tooltip') {
 			$elm.tooltip();
-			console.log('hay...!');
+			// console.log('hay...!');
 		}
 	}
 };

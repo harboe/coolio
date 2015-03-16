@@ -1,24 +1,17 @@
 var ParameterViewModel = function(data) {
 
-	var spFieldCtx = data.id ? sharepoint.getField(data.id): {}, 
-	schema = spFieldCtx.fieldSchema;
+	if (data.id) {
+		data = $.extend({}, sharepoint.data(data.id), data);
+		sharepoint.registerValue(data.id, this);
+	}
 
-	var obj = $.extend({}, {
-		name: schema.Name,
-		desc: schema.Description,
-		type: schema.FieldType.toLowerCase(),
-		aux: {
-			required: schema.Required,
-			maxLength: schema.MaxLength
-		}}, data);
-
-	this.id = ko.observable(obj.id);
-	this.name = ko.observable(obj.name || '');
-	this.desc = ko.observable(obj.desc || this.name());
-	this.type = ko.observable(obj.type || 'text');
-	this.help = ko.observable(obj.help || '');
-	this.value = ko.observable(spFieldCtx.fieldValue);
-	this.aux = obj.aux;
+	this.id = ko.observable(data.id);
+	this.name = ko.observable(data.name || data.id);
+	this.desc = ko.observable(data.desc || this.name());
+	this.type = ko.observable(data.type || 'text');
+	this.help = ko.observable(data.help || '');
+	this.value = ko.observable(data.value);
+	this.aux = data.aux;
 
 	if (!templates[this.type()]) {
 		this.type('text');
@@ -28,11 +21,6 @@ var ParameterViewModel = function(data) {
 		return this.help().length > 0;
 	}, this);
 
-	// TODO: sharepoint injection
-	if (data.id) {
-		sharepoint.registerValue(spFieldCtx, this);
-	}
-
 	console.log(ko.toJS(this));
 };
 
@@ -40,12 +28,26 @@ var GroupViewModel = function(data) {
 	this.id = ko.observable(data.id || data.name);
 	this.name = ko.observable(data.name);
 	this.type = ko.observable(data.type || 'group');
+	this.params = ko.observableArray().map(data.params, ParameterViewModel);
+	this.groups = ko.observableArray().map(data.groups, GroupViewModel);
+	
 	this.paramType = function(viewModel, e) {
 		return ko.unwrap(viewModel.type);
 	};
 	this.groupType = function(viewModel) {
 		return ko.unwrap(viewModel.type);
-	}
-	this.params = ko.observableArray().map(data.params, ParameterViewModel);
-	this.groups = ko.observableArray().map(data.groups, GroupViewModel);
+	};
 };
+
+$().ready(function() {
+	var b = $('body'), viewModel = new GroupViewModel(coolioLayout);
+
+	for (var t in templates) {
+		b.append('<template id="' + t + '">' + templates[t] + '</template>');
+	}
+
+	b.append('<div id="coolio" class="container" data-bind="template: { name: type, data: $data }"></div>');
+
+	console.log('coolio says elo!');
+	ko.applyBindings(viewModel, doc.getElementById('coolio'));
+});

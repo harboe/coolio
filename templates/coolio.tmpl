@@ -1,69 +1,17 @@
-(function(win, doc, ko) {
-	// sharepoint blackmagic
-	var sharepoint = {
-		fields: {},
-		Templates: {
-			Fields: {
-				{{ range $param := .Parameters }}
-				'{{$param.Id}}': {
-					EditForm: function(ctx){
-						sharepoint.fields['{{$param.Id}}'] = sharepoint.formContext(ctx);
-					},
-					NewForm: function(ctx){
-						sharepoint.fields['{{$param.Id}}'] = sharepoint.formContext(ctx);
-					}
-				},
-				{{ end }}
-			}
-		}, 
-		register: function() {
-			try { SPClientTemplates.TemplateManager.RegisterTemplateOverrides(sharepoint);}
-			catch(err) { console.log(err); }
-		},
-		registerValue: function(ctx, viewModel) {
-			ctx.registerGetValueCallback(ctx.fieldName, function() {
-				return ko.unwrap(viewModel.value);
-			});
-		},
-		formContext: function(ctx) {
-			try {
-				return SPClientTemplates.Utility.GetFormContextForCurrentField(ctx);
-			} catch(err) { console.log(err); }
-		},
-		getField: function(name) {
-			return sharepoint.fields[name];
-		}
-	};
+(function(win, doc) {
 
-	// after load.
-	sharepoint.register();
+	{{ template "sharepoint.js" .}}
 
 	var templates = {
-	{{ range $key, $val := .Templates}}
+	{{ range $key, $val := .Templates }}
 		'{{$key}}': '{{$val}}',
 	{{ end}}
 	};
 
-	var coolioLayout = {{.Layout}};
+	var coolioLayout = {{.JSON}};
 
-	{{ range $js := .Javascript}}
+	{{ range $js := .Javascript }}
 	{{$js}}
 	{{ end }}
 
-	$().ready(function() {
-		var b = $('body'), viewModel = new GroupViewModel(coolioLayout);
-
-		for (var t in templates) {
-			b.append('<template id="' + t + '">' + templates[t] + '</template>');
-		}
-
-		$('.ms-formtable').after('<div id="coolio" class="container" data-bind="template: { name: type, data: $data }"></div>');
-
-		console.log('coolio says elo!');
-
-		var elm = doc.getElementById('coolio');
-		ko.applyBindings(viewModel, elm);
-
-	});
-
-})(window, document, ko);
+})(window, document);
