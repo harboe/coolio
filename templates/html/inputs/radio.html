@@ -1,0 +1,13 @@
+<div class="form-group">
+	<!-- ko template: { name: 'label', data: $data } -->
+	<!-- /ko -->
+	<div class="col-sm-8" data-bind="foreach: aux.options">
+		<div class="radio">
+			<label>
+				<input type="radio" data-bind="value: value, name: $parent.id, attr: $parent.aux" />
+				<!-- ko text: name -->
+				<!-- /ko -->
+			</label>
+		</div>
+	</div>
+</div>

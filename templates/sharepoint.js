@@ -26,6 +26,9 @@ var sharepoint = {
 			ctx.registerGetValueCallback(ctx.fieldName, function() {
 				return ko.unwrap(viewModel.value);
 			});
+			ctx.registerValidationErrorCallback(ctx.fieldName, function(a, b) {
+				viewModel.validation(a.errorMessage);
+			});
 		}
 	},
 	formContext: function(ctx) {
@@ -35,8 +38,48 @@ var sharepoint = {
 
 		return {};
 	},
+	optionList: function(schema) {
+		var list = null;		
+
+		if (schema.FieldType === 'Choice') {
+			list = [];
+
+			for (var i in schema.Choices) {
+				var val = schema.Choices[i];
+				list.push({ name: val, value: val});
+			}
+		} else if (schema.FieldType === 'Lookup') {
+			list = [];
+
+			for (var i in schema.Choices) {
+				var val = schema.Choices[i];
+				list.push({ name: val.LookupValue, value: val.LookupId });
+			}
+		}
+
+		return list;
+	},
+	typeName: function(schema) {
+		var t = schema.FieldType.toLowerCase();
+
+		switch (t) {
+			case 'note':
+			return 'textarea'
+			case 'choice':
+			if (schema.FormatType === 1) {
+				return 'radio'
+			} else if (schema.FormatType === 2) {
+				return 'checkbox'
+			}
+			return 'select'
+			case 'lookup':
+			return 'select'
+			default:
+			return t
+		}
+	},
 	data: function(name) {
-		var field = sharepoint.fields[name];
+		var field = sharepoint.fields[name]
 
 		if (field) {
 			var schema = field.fieldSchema;
@@ -44,10 +87,14 @@ var sharepoint = {
 			return {
 				name: schema.Name,
 				desc: schema.Description,
-				type: schema.FieldType.toLowerCase(),
+				type: this.typeName(schema),
 				aux: {
+					readonly: schema.ReadOnlyField,
 					required: schema.Required,
-					maxLength: schema.MaxLength
+					maxLength: schema.MaxLength,
+					rows: schema.NumberOfLines,
+					options: this.optionList(schema),
+
 				},
 				value: field.fieldValue
 			}

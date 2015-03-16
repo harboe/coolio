@@ -1,5 +1,9 @@
 (function(win, doc) {
 
+	<!-- {{ range $bundle := .Bundles }}
+	{{$bundle}}
+	{{ end }} -->
+
 	{{ template "sharepoint.js" .}}
 
 	var templates = {

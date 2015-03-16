@@ -16,6 +16,12 @@ ko.bindingHandlers.id = {
 	}
 };
 
+ko.bindingHandlers.name = {
+	update: function(elm, valueAccessor) {
+		$(elm).attr('name', ko.unwrap(valueAccessor()));
+	}
+};
+
 ko.bindingHandlers.placeholder = {
 	update: function(elm, valueAccessor) {
 		$(elm).attr('placeholder', ko.unwrap(valueAccessor()));

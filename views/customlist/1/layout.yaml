@@ -1,0 +1,17 @@
+params:
+- id: Title  
+  help: ahhha!
+- id: MultiLine
+- id: ChoiceDropDown
+- id: ChoiceRadio
+- id: Number
+- id: Lookup
+- id: Currency
+  aux: 
+    min: 1
+    max: 100000
+- id: DateTime
+- id: YesNo
+- id: Person
+- id: Hyperlink
+- id: Calculated

@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -17,12 +16,21 @@ import (
 
 type ViewModel struct {
 	View    string
-	Version uint
+	Version string
+	body    []byte
+}
+
+func NewViewModelFromRaw(b []byte) (*ViewModel, error) {
+	return &ViewModel{body: b}, nil
 }
 
 func NewViewModel(view, version string) (*ViewModel, error) {
-	v, _ := strconv.ParseUint(version, 10, 0)
-	vm := &ViewModel{view, uint(v)}
+	if len(version) == 0 {
+		info, _ := ioutil.ReadDir("views/" + view)
+		version = info[len(info)-1].Name()
+	}
+
+	vm := &ViewModel{view, version, []byte{}}
 
 	if _, err := os.Stat(vm.ViewDir()); os.IsNotExist(err) {
 		return nil, errors.New("not found")
@@ -54,7 +62,13 @@ func (v *ViewModel) YAML() template.HTML {
 }
 
 func (v *ViewModel) Group() (g Group) {
-	if b := v.YAML(); len(b) > 0 {
+	if len(v.body) > 0 {
+		err := yaml.Unmarshal(v.body, &g)
+
+		if err != nil {
+			log.Println(err)
+		}
+	} else if b := v.YAML(); len(b) > 0 {
 		err := yaml.Unmarshal([]byte(b), &g)
 
 		if err != nil {
@@ -69,9 +83,17 @@ func (v *ViewModel) Parameters() []Parameter {
 	return v.Group().AllParameters()
 }
 
+func (v *ViewModel) Bundles() []template.HTML {
+	list := []template.HTML{}
+	traverseTemplates("bundles", "", func(path string, b []byte) {
+		list = append(list, template.HTML(b))
+	})
+	return list
+}
+
 func (v *ViewModel) Templates() map[string]template.HTML {
 	dic := map[string]template.HTML{}
-	traverseTemplates("html", func(path string, b []byte) {
+	traverseTemplates("html", ".html", func(path string, b []byte) {
 		filename := filepath.Base(path)
 		templateName := filename[:strings.LastIndex(filename, ".")]
 
@@ -85,16 +107,16 @@ func (v *ViewModel) Templates() map[string]template.HTML {
 
 func (v *ViewModel) Javascript() []template.HTML {
 	list := []template.HTML{}
-	traverseTemplates("js", func(path string, b []byte) {
+	traverseTemplates("js", ".js", func(path string, b []byte) {
 		list = append(list, template.HTML(b))
 	})
 	return list
 }
 
 func (v *ViewModel) String() string {
-	return fmt.Sprintf("/v1/%s/%v/js", v.View, v.Version)
+	return fmt.Sprintf(proxy+"/v1/%s/%s", v.View, v.Version)
 }
 
 func (v *ViewModel) ViewDir() string {
-	return fmt.Sprintf("%s/%s/%v", viewDir, v.View, v.Version)
+	return fmt.Sprintf("views/%s/%s", v.View, v.Version)
 }

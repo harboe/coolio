@@ -11,7 +11,10 @@ var ParameterViewModel = function(data) {
 	this.type = ko.observable(data.type || 'text');
 	this.help = ko.observable(data.help || '');
 	this.value = ko.observable(data.value);
+	this.validation = ko.observable('');
 	this.aux = data.aux;
+
+	console.log(ko.toJS(this));
 
 	if (!templates[this.type()]) {
 		this.type('text');
@@ -40,14 +43,23 @@ var GroupViewModel = function(data) {
 };
 
 $().ready(function() {
-	var b = $('body'), viewModel = new GroupViewModel(coolioLayout);
+	var b = $('body'), 
+	f = $('.ms-formtable'),
+	viewModel = new GroupViewModel(coolioLayout);
+	coolio = '<div id="coolio" class="container-fluid" data-bind="template: { name: type, data: $data }"></div>';
 
 	for (var t in templates) {
 		b.append('<template id="' + t + '">' + templates[t] + '</template>');
 	}
 
-	b.append('<div id="coolio" class="container" data-bind="template: { name: type, data: $data }"></div>');
-
+	if (f.length === 0) {
+		b.append(coolio);
+	} else {
+		$('#DeltaPlaceHolderMain').prepend(coolio);
+	}
+	
 	console.log('coolio says elo!');
 	ko.applyBindings(viewModel, doc.getElementById('coolio'));
 });
+
+console.log('testing...');
