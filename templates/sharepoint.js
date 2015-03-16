@@ -17,7 +17,7 @@ var sharepoint = {
 	}, 
 	register: function() {
 		try { SPClientTemplates.TemplateManager.RegisterTemplateOverrides(sharepoint);}
-		catch(err) { console.log(err); }
+		catch(err) { }
 	},
 	registerValue: function(name, viewModel) {
 		var ctx = sharepoint.fields[name];
@@ -94,7 +94,6 @@ var sharepoint = {
 					maxLength: schema.MaxLength,
 					rows: schema.NumberOfLines,
 					options: this.optionList(schema),
-
 				},
 				value: field.fieldValue
 			}

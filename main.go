@@ -11,7 +11,7 @@ import (
 )
 
 const port = "localhost:8080"
-const proxy = "http://localhost:8080"
+const proxy = "https://17afee27.ngrok.com"
 
 type context struct{}
 

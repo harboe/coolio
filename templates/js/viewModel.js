@@ -14,8 +14,6 @@ var ParameterViewModel = function(data) {
 	this.validation = ko.observable('');
 	this.aux = data.aux;
 
-	console.log(ko.toJS(this));
-
 	if (!templates[this.type()]) {
 		this.type('text');
 	}
@@ -24,7 +22,7 @@ var ParameterViewModel = function(data) {
 		return this.help().length > 0;
 	}, this);
 
-	console.log(ko.toJS(this));
+	// console.log(ko.toJS(this));
 };
 
 var GroupViewModel = function(data) {
@@ -61,5 +59,3 @@ $().ready(function() {
 	console.log('coolio says elo!');
 	ko.applyBindings(viewModel, doc.getElementById('coolio'));
 });
-
-console.log('testing...');

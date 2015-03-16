@@ -16,7 +16,6 @@
   "dependencies": {
     "bootstrap": "~3.3.4",
     "knockout": "~3.3.0",
-    "SyntaxHighlighter": "~3.0.83",
     "codemirror": "~5.0.0"
   }
 }
