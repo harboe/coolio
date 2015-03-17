@@ -20,15 +20,14 @@ func main() {
 
 	r := router.New()
 	// content
+	r.GET("/v1/:view", ctx.contentHandler)
 	r.GET("/v1/:view/:version", ctx.contentHandler)
 	r.GET("/v1/:view/:version/:file", ctx.contentHandler)
 
 	// preview
 	r.POST("/preview", ctx.previewHandler)
+	r.GET("/preview/:view/:version", ctx.previewHandler)
 
-	// editor
-	r.GET("/editor/:view", ctx.editorHandler)
-	r.GET("/editor/:view/:version", ctx.editorHandler)
 	// index
 	r.GET("/", ctx.indexHandler)
 
@@ -65,11 +64,8 @@ func (*context) contentHandler(w http.ResponseWriter, req *http.Request, ps rout
 		case "js":
 			t := GetJavascriptTemplate()
 			t.Execute(w, v)
-		case "editor":
-			t := GetEditorTemplate()
-			t.Execute(w, v)
 		default:
-			t := GetHtmlTemplate()
+			t := GetEditorTemplate()
 			t.Execute(w, v)
 		}
 
@@ -90,11 +86,42 @@ func (*context) editorHandler(w http.ResponseWriter, req *http.Request, ps route
 }
 
 func (*context) previewHandler(w http.ResponseWriter, req *http.Request, ps router.Params) {
-	defer req.Body.Close()
-	b, _ := ioutil.ReadAll(req.Body)
-	v, _ := NewViewModelFromRaw(b)
+	var (
+		v        *ViewModel
+		err      error
+		writeErr = func(err error) {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
+	)
+
+	if req.Method == "GET" {
+		if v, err = NewViewModel(ps.ByName("view"), ps.ByName("version")); err != nil {
+			writeErr(err)
+			return
+		}
+	} else {
+		defer req.Body.Close()
+		b, err := ioutil.ReadAll(req.Body)
+
+		if err != nil {
+			writeErr(err)
+			return
+		}
+
+		if v, err = NewViewModelFromRaw(b); err != nil {
+			writeErr(err)
+			return
+		}
+	}
+
 	t := GetJavascriptTemplate()
-	x, _ := t.ExecuteBytes(v)
+	x, err := t.ExecuteBytes(v)
+
+	if err != nil {
+		writeErr(err)
+		return
+	}
 
 	preview := GetPreviewTemplate()
 	preview.Execute(w, template.JS(x))

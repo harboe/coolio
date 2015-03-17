@@ -51,13 +51,6 @@ func GetJavascriptTemplate() Template {
 		"application/javascript"}
 }
 
-func GetHtmlTemplate() Template {
-	return Template{
-		template.Must(template.ParseFiles(templateDir + "/debug.tmpl")),
-		"text/html",
-	}
-}
-
 func GetEditorTemplate() Template {
 	return Template{
 		template.Must(template.ParseFiles(templateDir + "/editor.tmpl")),

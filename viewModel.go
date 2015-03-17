@@ -50,10 +50,14 @@ func (v *ViewModel) JSON() template.HTML {
 }
 
 func (v *ViewModel) YAML() template.HTML {
+	if len(v.body) > 0 {
+		return template.HTML(v.body)
+	}
+
 	file := v.ViewDir() + "/layout.yaml"
 
 	if b, err := ioutil.ReadFile(file); err != nil {
-		log.Println("err")
+		log.Println("yaml err:", err)
 	} else {
 		return template.HTML(b)
 	}
@@ -85,7 +89,7 @@ func (v *ViewModel) Parameters() []Parameter {
 
 func (v *ViewModel) Bundles() []template.HTML {
 	list := []template.HTML{}
-	traverseTemplates("bundles", "", func(path string, b []byte) {
+	traverseTemplates("bundles", ".js", func(path string, b []byte) {
 		list = append(list, template.HTML(b))
 	})
 	return list

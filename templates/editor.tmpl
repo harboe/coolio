@@ -60,14 +60,13 @@
 				    $.post('/preview', cm.getValue(), function(e) {
 				    	iframe.srcdoc = e;
 				    });
-				}, 500)
+				}, 500);
 			});
 
 			$('.CodeMirror').addClass('border');
 
 			resize();
 			$(window).resize(resize);
-
 		});
 	</script>
 </head>
@@ -90,7 +89,7 @@
 			</div>
 			<div class="col-sm-6 col-hidden-xs">
 				<label for="html">Result</label>
-				<iframe sandbox="allow-same-origin allow-scripts" src="{{.}}/html" id="html" class="fill border"></iframe>
+				<iframe sandbox="allow-same-origin allow-scripts" src="/preview/{{.View}}/{{.Version}}" id="html" class="fill border"></iframe>
 			</div>
 		</div>
 	</div>
