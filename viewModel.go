@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,34 +10,59 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 )
 
-type ViewModel struct {
-	View    string
-	Version string
-	body    []byte
+type (
+	ViewModel struct {
+		View       string
+		Version    string
+		yaml       template.HTML
+		customHTML template.HTML
+		customJS   template.HTML
+	}
+	TemplateKey string
+)
+
+func (key TemplateKey) HasViewModel() bool {
+	return !strings.HasPrefix(string(key), "shared-")
 }
 
-func NewViewModelFromRaw(b []byte) (*ViewModel, error) {
-	return &ViewModel{body: b}, nil
+func NewViewModelFromRaw(view, yaml, html, js string) *ViewModel {
+	return &ViewModel{
+		View:       view,
+		Version:    nextVersion(view),
+		yaml:       template.HTML(yaml),
+		customHTML: template.HTML(html),
+		customJS:   template.HTML(js),
+	}
 }
 
 func NewViewModel(view, version string) (*ViewModel, error) {
 	if len(version) == 0 {
-		info, _ := ioutil.ReadDir("views/" + view)
-		version = info[len(info)-1].Name()
+		version = latestVersion(view)
 	}
 
-	vm := &ViewModel{view, version, []byte{}}
+	vm := &ViewModel{View: view, Version: version}
 
 	if _, err := os.Stat(vm.ViewDir()); os.IsNotExist(err) {
 		return nil, errors.New("not found")
 	}
 
 	return vm, nil
+}
+
+func latestVersion(view string) string {
+	info, _ := ioutil.ReadDir("views/" + view)
+	return info[len(info)-1].Name()
+}
+
+func nextVersion(view string) string {
+	ver, _ := strconv.ParseInt(latestVersion(view), 10, 0)
+	return fmt.Sprintf("%v", (ver + 1))
 }
 
 func (v *ViewModel) JSON() template.HTML {
@@ -50,24 +76,47 @@ func (v *ViewModel) JSON() template.HTML {
 }
 
 func (v *ViewModel) YAML() template.HTML {
-	if len(v.body) > 0 {
-		return template.HTML(v.body)
+	if len(v.yaml) > 0 {
+		return v.yaml
 	}
 
 	file := v.ViewDir() + "/layout.yaml"
+	return template.HTML(readFile(file))
+}
 
-	if b, err := ioutil.ReadFile(file); err != nil {
-		log.Println("yaml err:", err)
+func (v *ViewModel) CustomHTML() template.HTML {
+	var b []byte
+
+	if len(v.customHTML) > 0 {
+		b = []byte(v.customHTML)
 	} else {
-		return template.HTML(b)
+		file := v.ViewDir() + "/custom.html"
+		b = []byte(readFile(file))
 	}
 
-	return ""
+	html := removeWhitespace(b)
+	log.Println("\nbefore:", string(b), "\nafter:", html)
+	return template.HTML(html)
+}
+
+func (v *ViewModel) CustomJS() template.HTML {
+	if len(v.customJS) > 0 {
+		return v.customJS
+	}
+	file := v.ViewDir() + "/custom.js"
+	return template.HTML(readFile(file))
+}
+
+func readFile(file string) []byte {
+	if b, err := ioutil.ReadFile(file); err == nil {
+		return b
+	}
+	return []byte{}
 }
 
 func (v *ViewModel) Group() (g Group) {
-	if len(v.body) > 0 {
-		err := yaml.Unmarshal(v.body, &g)
+	if len(v.yaml) > 0 {
+		err := yaml.Unmarshal([]byte(v.yaml), &g)
 
 		if err != nil {
 			log.Println(err)
@@ -95,16 +144,16 @@ func (v *ViewModel) Bundles() []template.HTML {
 	return list
 }
 
-func (v *ViewModel) Templates() map[string]template.HTML {
-	dic := map[string]template.HTML{}
+func (v *ViewModel) Templates() map[TemplateKey]template.HTML {
+	dic := map[TemplateKey]template.HTML{}
 	traverseTemplates("html", ".html", func(path string, b []byte) {
 		filename := filepath.Base(path)
 		templateName := filename[:strings.LastIndex(filename, ".")]
 
-		tmpl := strings.Replace(string(b), "\n", "", -1)
+		tmpl := removeWhitespace(b)
 		tmpl = strings.Replace(tmpl, "'", "\\'", -1)
 
-		dic[templateName] = template.HTML(tmpl)
+		dic[TemplateKey(templateName)] = template.HTML(tmpl)
 	})
 	return dic
 }
@@ -123,4 +172,65 @@ func (v *ViewModel) String() string {
 
 func (v *ViewModel) ViewDir() string {
 	return fmt.Sprintf("views/%s/%s", v.View, v.Version)
+}
+
+func (v *ViewModel) Sum() string {
+	h := md5.New()
+	h.Write([]byte(v.YAML()))
+	h.Write([]byte(v.CustomHTML()))
+	h.Write([]byte(v.CustomJS()))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (v *ViewModel) HasChanges() bool {
+	file := fmt.Sprintf("views/%s/%s/md5", v.View, latestVersion(v.View))
+	if b := readFile(file); len(b) > 0 && v.Sum() == string(b) {
+		return false
+	}
+	return true
+}
+
+func (v *ViewModel) Save() error {
+	dir := v.ViewDir()
+
+	if ok := v.HasChanges(); !ok {
+		log.Println("ok?", ok)
+		return errors.New("allready saved")
+	}
+
+	// first create the directory
+	if err := os.Mkdir(dir, os.ModePerm); err != nil {
+		return err
+	}
+	// save yaml, json, custom html & js
+	ioutil.WriteFile(dir+"/layout.yaml", []byte(v.yaml), os.ModePerm)
+	ioutil.WriteFile(dir+"/layout.json", []byte(v.JSON()), os.ModePerm)
+	ioutil.WriteFile(dir+"/custom.html", []byte(v.customHTML), os.ModePerm)
+	ioutil.WriteFile(dir+"/custom.js", []byte(v.customJS), os.ModePerm)
+
+	ioutil.WriteFile(dir+"/md5", []byte(v.Sum()), os.ModePerm)
+
+	// save sharepoint asset file
+	asset := GetAssetTemplate()
+	if b, err := asset.Bytes(v); err != nil {
+		return err
+	} else {
+		ioutil.WriteFile(dir+"/asset.js", b, os.ModePerm)
+	}
+
+	// save javascript file
+	js := GetJavascriptTemplate()
+	if b, err := js.Bytes(v); err != nil {
+		return err
+	} else {
+		ioutil.WriteFile(dir+"/coolio.js", b, os.ModePerm)
+	}
+
+	return nil
+}
+
+func removeWhitespace(b []byte) string {
+	tmpl := strings.Replace(string(b), "\n", "", -1)
+	tmpl = strings.Replace(tmpl, "\r", "", -1)
+	return strings.Replace(tmpl, "\t", "", -1)
 }

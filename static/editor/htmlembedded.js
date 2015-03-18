@@ -1,0 +1,1 @@
+../../bower_components/codemirror/mode/htmlembedded/htmlembedded.js

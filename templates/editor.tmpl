@@ -9,88 +9,93 @@
 	<title>Coolio</title>
 
 	<link href="/static/bootstrap.min.css" rel="stylesheet">
-	<link href="/static/codemirror.css" rel="stylesheet">
-	<link href="/static/xq-light.css" rel="stylesheet">
+	<link href="/static/editor/codemirror.css" rel="stylesheet">
+	<link href="/static/editor/show-hint.css" rel="stylesheet">
+	<link href="/static/editor/xq-light.css" rel="stylesheet">
 
 	<script src="/static/jquery.min.js"></script>	
 	<script src="/static/bootstrap.min.js"></script>
-	<script src="/static/knockout.js"></script>
-	<script src="/static/codemirror.min.js"></script>
+
+	<script src="/static/editor/codemirror.js"></script>
+	<script src="/static/editor/sublime.js"></script>
+	<script src="/static/editor/show-hint.js"></script>
+	<script src="/static/editor/css.js"></script>
+	<script src="/static/editor/css-hint.js"></script>
+	<script src="/static/editor/htmlembedded.js"></script>
+	<script src="/static/editor/html-hint.js"></script>
+	<script src="/static/editor/yaml.js"></script>
+	<script src="/static/editor/yaml-hint.js"></script>
+	<script src="/static/editor/app.js"></script>
 
 	<style>
-		html, body, .fluid-container {
-			height: 100%;
-		}
+	html, body, .fluid-container {
+		height: 100%;
+	}
 
-		.border {
-			border: 1px solid #ccc;
-			border-radius: 4px;
-			display: block;	
-			width: 100%;
-		}
+	#editor {
+		position: relative;
+	}
+
+	#editor .header {
+		position: absolute;
+		right: 40px;
+		top: 10px;
+		z-index: 500;
+
+		text-transform: uppercase;
+	}
+
+	.border {
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		display: block;	
+		width: 100%;
+	}
 	</style>
-
-	<script type="application/javascript">
-		$().ready(function() {
-
-			var resize = function() {
-				var height = $('body').height() - $('nav').outerHeight() - 80;
-				$('.fill, .CodeMirror').css('height', height + 'px');
-			};
-
-			var cm = CodeMirror.fromTextArea(document.getElementById("yaml"), {
-			    lineNumbers: true,
-			    extraKeys: { Tab: function(cm) {
-			      if (cm.somethingSelected()) {
-			        cm.indentSelection("add");
-			      } else {
-			        cm.replaceSelection(cm.getOption("indentWithTabs")? "\t":
-			          Array(cm.getOption("indentUnit") + 1).join(" "), "end", "+input");
-			      }
-			    }}
-			});
-
-			var throttle_timer;
-			// on and off handler like in jQuery
-			cm.on('change', function(cm){
-				clearTimeout(throttle_timer);
-				throttle_timer = setTimeout(function() {
-				    var iframe = document.getElementById('html');
-				    console.log('value: ' + cm.getValue())
-				    $.post('/preview', cm.getValue(), function(e) {
-				    	iframe.srcdoc = e;
-				    });
-				}, 500);
-			});
-
-			$('.CodeMirror').addClass('border');
-
-			resize();
-			$(window).resize(resize);
-		});
-	</script>
 </head>
 <body>
 	<nav class="navbar navbar-default">
-	  <div class="container-fluid">
-	  	<div class="navbar-header">
-	  		<a class="navbar-brand" href="/">Coolio</a>
-	  	</div>
-	  	<ul class="nav navbar-nav">
-  	        <li class="active"><a href="#">Editor</a></li>
-  	    </ul>
-	  </div>
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="/">Coolio</a>
+			</div>
+			
+			<ul class="nav navbar-nav">
+				<li><a href="#save"><i class="glyphicon glyphicon-pencil"></i> Save</a></li>
+				<li><a href="#run">Run</a></li>
+			</ul>
+			<p class="navbar-text">View: {{.View}}, Version: {{.Version}}</p>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="{{.}}/asset">Asset</a></li>
+				<li><a href="{{.}}/yaml">YAML</a></li>
+				<li><a href="{{.}}/json">JSON</a></li>
+			</ul>
+		</div>
 	</nav>
-	<div class="container-fluid">
+	<div id="editor" class="container-fluid">
 		<div class="row">
 			<div class="col-sm-6">
-				<label for="yaml">YAML</label>
-				<textarea id="yaml" class="fill form-control">{{.YAML}}</textarea>
+				<div class="header">
+					<a href="#yaml">Yaml</a> | 
+					<a href="#html">Html</a> | 
+					<a href="#js">Javascript</a>
+					<span class="visible-xs"> | <a href="#result">Result</a></span>
+				</div>
+				<div id="yaml">
+					<textarea class="fill form-control">{{.YAML}}</textarea>
+				</div>
+				<div id="html" style="display: none">
+					<textarea class="fill form-control">{{.CustomHTML}}</textarea>
+				</div>
+				<div id="js" style="display: none">
+					<textarea class="fill form-control">{{.CustomJS}}</textarea>
+				</div>
 			</div>
-			<div class="col-sm-6 col-hidden-xs">
-				<label for="html">Result</label>
-				<iframe sandbox="allow-same-origin allow-scripts" src="/preview/{{.View}}/{{.Version}}" id="html" class="fill border"></iframe>
+			<div class="col-sm-6 hidden-xs">
+				<div class="header">Result</div>
+				<iframe id="result" sandbox="allow-same-origin allow-scripts" x class="fill border"></iframe>
 			</div>
 		</div>
 	</div>
+	<input id="viewname" type="hidden" name="viewname" value="{{.View}}" />
 </body>

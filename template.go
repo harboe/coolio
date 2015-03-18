@@ -30,7 +30,7 @@ func (t Template) Execute(w http.ResponseWriter, v interface{}) {
 	}
 }
 
-func (t Template) ExecuteBytes(v interface{}) ([]byte, error) {
+func (t Template) Bytes(v interface{}) ([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 	err := t.Template.Execute(buf, v)
 	return buf.Bytes(), err
@@ -44,11 +44,13 @@ func GetAssetTemplate() Template {
 }
 
 func GetJavascriptTemplate() Template {
-	return Template{template.Must(template.ParseFiles(
-		templateDir+"/coolio.tmpl",
-		templateDir+"/sharepoint.js",
-	)),
-		"application/javascript"}
+	return Template{template.Must(
+		template.ParseFiles(
+			templateDir+"/coolio.tmpl",
+			templateDir+"/sharepoint.js",
+		)),
+		"application/javascript",
+	}
 }
 
 func GetEditorTemplate() Template {

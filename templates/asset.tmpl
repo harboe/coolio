@@ -1,10 +1,1 @@
-(function(doc, win) {
-
-	// load jquery and bootstrap
-	doc.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">');
-	doc.write('<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>');
-	doc.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"></script>');
-
-	// load coolio
-	doc.write('<script src="{{.}}/js"></script>');
-})(document, window);
+document.write('<script src="{{.}}/js"></script>');

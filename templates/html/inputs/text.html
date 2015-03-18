@@ -1,8 +1,9 @@
 <div class="form-group">
-	<!-- ko template: { name: 'label', data: $data } -->
-	<!-- /ko -->
+	<label class="col-sm-4" data-bind="attr:{ 'for': id }">
+		<span data-bind="text: name"></span>
+		<i style="display: none" class="glyphicon glyphicon-question-sign" data-bind="visible: hasHelp, attr: { title: help }, toggle" data-toggle="tooltip" data-placement="top" title="Tooltip on right"></i>
+	</label>
 	<div class="col-sm-8">
-		<!-- ko template: { name: 'input', data: $data } -->
-		<!-- /ko -->
+		<input type="text" class="form-control" data-bind="placeholder: desc, attr: aux, value: value, type: type" />
 	</div>
 </div>

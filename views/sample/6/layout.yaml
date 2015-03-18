@@ -1,0 +1,12 @@
+# root group
+#type: bootstrap
+params:
+  - id: SupplierName
+    desc: Supplier Name
+    type: text
+  - name: Supplier Address
+    type: text
+    help: bla bla bla ddc
+  - name: Button
+    type: btn
+

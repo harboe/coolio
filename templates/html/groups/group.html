@@ -1,7 +1,6 @@
 <form class="form-horizontal">
-	<!-- ko template: { name: paramType, foreach: params } -->
-	<!-- /ko -->	
-	<!-- ko template: { name: groupType, foreach: groups } -->
+	<!-- ko foreach: params -->
+	<div data-bind="component: { name: type, params: $data }"></div>
 	<!-- /ko -->
 	<br>
 </form>
