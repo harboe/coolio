@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
@@ -9,12 +10,21 @@ import (
 	router "github.com/julienschmidt/httprouter"
 )
 
-const port = "localhost:8080"
-const proxy = "https://17afee27.ngrok.com"
+var (
+	port  string
+	proxy string
+)
+
+// const port = "localhost:8080"
+// const proxy = "https://17afee27.ngrok.com"
 
 type context struct{}
 
 func main() {
+	flag.StringVar(&port, "port", "localhost:8080", "help message for flagname")
+	flag.StringVar(&proxy, "proxy", "", "help message for flagname")
+	flag.Parse()
+
 	ctx := &context{}
 
 	r := router.New()
