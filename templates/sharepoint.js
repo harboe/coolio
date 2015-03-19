@@ -6,6 +6,21 @@
 
 	var container = '<div id="coolio" class="container-fluid" data-bind="component: { name: \'group\', params: $data }"></div>';
 	
+	var postbox = new ko.subscribable();
+
+	ko.subscribable.fn.subscribeTo = function(topic) {
+		postbox.subscribe(this, null, topic);
+		return this;  //support chaining
+	};
+
+	ko.subscribable.fn.publishOn = function(topic, broadcastOnInit) {
+		this.subscribe(function(newValue) {
+			postbox.notifySubscribers(newValue, topic);
+		});
+
+		return this; //support chaining
+	};
+
 	var Sharepoint = function() {
 		var self = this;
 		var spContext = {};
@@ -101,32 +116,41 @@
 					},
 					{{ end }}
 				}
-			}, 
+			}
 		};
 
 		try { SPClientTemplates.TemplateManager.RegisterTemplateOverrides(templateOverride);}
 		catch(err) { }
 	};
 
-	var ViewModel = function(params) {
-		var defaults = {
-			id: '',
-			help: '',
-			params: [],
-			groups: [],
-			aux: {}
-		};
+	var DataModelDefaults = {
+		id: '',
+		help: '',
+		params: [],
+		groups: [],
+		aux: {}
+	};
 
-		var data = ko.toJS(params.data || params);
-		data = $.extend({}, defaults, coolio.sharepoint[data.id], data);
+	var DataModel = function(data) {
+		$.extend(this, DataModelDefaults, data);
 
-		if (!data.type) {
-			if (data.params.length > 0 || data.groups.length > 0) {
-				data.type = 'group';
-			} else {
-				data.type = 'text';
-			}
+		this.params = ko.utils.arrayMap(this.params, function(p) {
+			return new DataModel(p);
+		});
+		this.groups = ko.utils.arrayMap(this.groups, function(p) {
+			return new DataModel(p);
+		});
+
+		this.hasChildren = this.params.length > 0 || this.groups.length > 0;
+		
+		if (!this.type) {
+			this.type = this.hasChildren ? 'group': 'text';
 		}
+	};
+
+	var ViewModel = function(params) {
+		var data = ko.toJS(params.data || params);
+		data = $.extend({}, DataModelDefaults, coolio.sharepoint[data.id], data);
 
 		this.id = ko.observable(data.id);
 		this.name = ko.observable(data.name || data.id);
@@ -137,10 +161,13 @@
 		this.validation = ko.observable('');
 		this.aux = data.aux;
 
-		this.hasHelp = ko.computed(function() {
-			return false; // this.help().length > 0;
-		}, this);
+		if (data.id) {
+			this.value.subscribeTo(data.id);
+		}
 
+		this.hasHelp = ko.computed(function() {
+			return this.help().length > 0;
+		}, this);
 
 		this.params = ko.observableArray(data.params);
 		this.groups = ko.observableArray(data.groups);
@@ -149,9 +176,9 @@
 	};
 
 	var Templates = function() {
-		doc.write('{{.CustomHTML}}');
+		doc.write('{{.CustomHTML.Inline}}');
 		{{ range $key, $val := .Templates }}
-		doc.write('<template id="coolio-{{$key}}-template">{{$val}}</template>');
+		doc.write('<template id="coolio-{{$key}}-template">{{$val.Inline}}</template>');
 		ko.components.register('{{$key}}', {
 			template: { element: 'coolio-{{$key}}-template' },
 			{{ if $key.HasViewModel }} viewModel: ViewModel {{end}}
@@ -172,7 +199,13 @@
 	var coolio = {
 		templates: new Templates(),
 		sharepoint: new Sharepoint(),
-		data: {{.JSON}}
+		data: new DataModel({{.JSON}}),
+		subscribe: function(cb, context, topic) {
+			postbox.subscribe(cb, context, topic);
+		},
+		notify: function(item, topic) {
+			postbox.notifySubscribers(item, topic);
+		}
 	};
 
 	try { {{.CustomJS}} }
@@ -188,7 +221,7 @@
 		}
 
 		console.log('coolio says elo!');
+		console.log(coolio);
 		ko.applyBindings(coolio, doc.getElementById('coolio'));
 	});
-
 })(window, document);

@@ -3,7 +3,7 @@ var resize = function() {
 	$('.fill, .CodeMirror').css('height', height + 'px');
 };
 var throttle_timer, yamlCM, htmlCM, jsCM, iframe, viewname;
-var saveData = function(preview) {
+var save = function(preview) {
 	clearTimeout(throttle_timer);
 	throttle_timer = setTimeout(function() {
 		var data = { yaml: yamlCM.getValue(), html: htmlCM.getValue(), js: jsCM.getValue() };
@@ -12,22 +12,58 @@ var saveData = function(preview) {
 			iframe.srcdoc = e;
 		});
 	}, 500);
+
+	return false;
+};
+var run = function() {
+	save(true);
+	return false;
+};
+var showYaml = function() {
+	$('#html, #js').hide();
+	$('#yaml').show();
+
+	yamlCM.refresh();
+	yamlCM.focus();
+	return false;
+};
+
+var showHtml = function() {
+	$('#js, #yaml').hide();
+	$('#html').show();
+
+	htmlCM.refresh();
+	htmlCM.focus();
+	return false;
+};
+
+var showJs = function() {
+	$('#html, #yaml').hide();
+	$('#js').show();
+	$('a[href="#js"]').addClass('')
+
+	jsCM.refresh();
+	jsCM.focus();
+	return false;
+};
+var showResult = function() {
+	return false;
 };
 
 $().ready(function() {
 	iframe = document.getElementById('result');
 	viewname = $('#viewname').val();
 
-	$('a[href="#save"]').click(function(e) {
-		saveData();
-		e.preventDefault();
-		return false;
-	});
-	$('a[href="#run"]').click(function(e) {
-		saveData(true);
-		e.preventDefault();
-		return false;
-	});
+	$('a[href="#save"]').click(save);
+	$('a[href="#run"]').click(run);
+
+	// var doc = $(document);
+	// doc.bind('keydown', 'Ctrl_s', save);
+	// doc.bind('keydown', 'f1', showYaml);
+	// doc.bind('keydown', 'f2', showHtml);
+	// doc.bind('keydown', 'f3', showJs);
+	// doc.bind('keydown', 'f4', showResult);
+	// doc.bind('keydown', 'f5', run);
 
 	$('a[href="#result"]').click(function(e) {
 		$('#yaml, #html, #js').hide();
@@ -38,7 +74,12 @@ $().ready(function() {
 	});
 	$('a[href="#yaml"], a[href="#html"], a[href="#js"]').click(function(e) {
 		$('#yaml, #html, #js').hide();
-		$(this.hash).show();
+		var elm = $(this.hash)
+		elm.show();
+
+		var cm = elm.find('.CodeMirror')[0].CodeMirror;
+		cm.refresh();
+		cm.focus();
 
 		e.preventDefault();
 		return false;
@@ -55,7 +96,7 @@ $().ready(function() {
 			}
 		}}
 	});
-	yamlCM.on('change', function() { saveData(true); });
+	yamlCM.on('change', run);
 	jsCM = CodeMirror.fromTextArea($('#js textarea')[0], {
 		lineNumbers: true
 	});
@@ -64,7 +105,8 @@ $().ready(function() {
 		lineNumbers: true
 	});
 
-	saveData(true);
+	// init preview
+	run();
 
 	$('.CodeMirror').addClass('border');
 

@@ -41,7 +41,7 @@ func (*context) contentHandler(w http.ResponseWriter, req *http.Request, ps rout
 	version := ps.ByName("version")
 	file := ps.ByName("file")
 
-	if len(ps) == 2 {
+	if version == "json" || version == "yaml" || version == "asset" || version == "js" {
 		file = version
 		version = ""
 	}
@@ -154,7 +154,7 @@ func (*context) saveHandler(w http.ResponseWriter, req *http.Request, ps router.
 	preview := GetPreviewTemplate()
 	preview.Execute(w, template.JS(x))
 
-	log.Println("view:", v.View, "\nhtml:", req.FormValue("html"), "\njs:", req.FormValue("js"))
+	// log.Println("view:", v.View, "\nhtml:", req.FormValue("html"), "\njs:", req.FormValue("js"))
 }
 
 func (*context) indexHandler(w http.ResponseWriter, req *http.Request, ps router.Params) {

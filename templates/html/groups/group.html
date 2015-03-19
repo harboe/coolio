@@ -1,6 +1,4 @@
 <form class="form-horizontal">
-	<!-- ko foreach: params -->
-	<div data-bind="component: { name: type, params: $data }"></div>
-	<!-- /ko -->
+	<coolio-group params="viewModel: $data"></coolio-group>
 	<br>
 </form>

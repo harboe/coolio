@@ -8,11 +8,23 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
 	templateDir = "templates"
 )
+
+type HTML template.HTML
+
+func (h HTML) Inline() template.HTML {
+	tmpl := strings.Replace(string(h), "\n", "", -1)
+	tmpl = strings.Replace(tmpl, "\r", "", -1)
+	tmpl = strings.Replace(tmpl, "\t", "", -1)
+	tmpl = strings.Replace(tmpl, "'", "\\'", -1)
+
+	return template.HTML(tmpl)
+}
 
 type Template struct {
 	*template.Template

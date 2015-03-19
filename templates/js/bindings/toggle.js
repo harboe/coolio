@@ -9,6 +9,9 @@ ko.bindingHandlers.toggle = {
 				$(hash).collapse({toggle: true});
 			});
 		} else if (toggle === 'tab') {
+			// activate first tab.
+			$(hash).parent().find('.tab-pane:first').addClass('active');
+			
 			$elm.click(function(e) {
 				$elm.tab('show');
 

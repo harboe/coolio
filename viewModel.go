@@ -28,7 +28,7 @@ type (
 )
 
 func (key TemplateKey) HasViewModel() bool {
-	return !strings.HasPrefix(string(key), "shared-")
+	return !strings.HasPrefix(string(key), "coolio-")
 }
 
 func NewViewModelFromRaw(view, yaml, html, js string) *ViewModel {
@@ -84,7 +84,7 @@ func (v *ViewModel) YAML() template.HTML {
 	return template.HTML(readFile(file))
 }
 
-func (v *ViewModel) CustomHTML() template.HTML {
+func (v *ViewModel) CustomHTML() HTML {
 	var b []byte
 
 	if len(v.customHTML) > 0 {
@@ -94,9 +94,7 @@ func (v *ViewModel) CustomHTML() template.HTML {
 		b = []byte(readFile(file))
 	}
 
-	html := removeWhitespace(b)
-	log.Println("\nbefore:", string(b), "\nafter:", html)
-	return template.HTML(html)
+	return HTML(b)
 }
 
 func (v *ViewModel) CustomJS() template.HTML {
@@ -144,16 +142,16 @@ func (v *ViewModel) Bundles() []template.HTML {
 	return list
 }
 
-func (v *ViewModel) Templates() map[TemplateKey]template.HTML {
-	dic := map[TemplateKey]template.HTML{}
+func (v *ViewModel) Templates() map[TemplateKey]HTML {
+	dic := map[TemplateKey]HTML{}
 	traverseTemplates("html", ".html", func(path string, b []byte) {
 		filename := filepath.Base(path)
 		templateName := filename[:strings.LastIndex(filename, ".")]
 
-		tmpl := removeWhitespace(b)
-		tmpl = strings.Replace(tmpl, "'", "\\'", -1)
+		// tmpl := removeWhitespace(b)
+		// tmpl = strings.Replace(tmpl, "'", "\\'", -1)
 
-		dic[TemplateKey(templateName)] = template.HTML(tmpl)
+		dic[TemplateKey(templateName)] = HTML(b)
 	})
 	return dic
 }
@@ -229,8 +227,8 @@ func (v *ViewModel) Save() error {
 	return nil
 }
 
-func removeWhitespace(b []byte) string {
-	tmpl := strings.Replace(string(b), "\n", "", -1)
-	tmpl = strings.Replace(tmpl, "\r", "", -1)
-	return strings.Replace(tmpl, "\t", "", -1)
-}
+// func removeWhitespace(b []byte) string {
+// 	tmpl := strings.Replace(string(b), "\n", "", -1)
+// 	tmpl = strings.Replace(tmpl, "\r", "", -1)
+// 	return strings.Replace(tmpl, "\t", "", -1)
+// }
