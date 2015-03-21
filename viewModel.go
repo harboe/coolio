@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"errors"
@@ -24,12 +25,12 @@ type (
 		customHTML template.HTML
 		customJS   template.HTML
 	}
-	TemplateKey string
+	HtmlTemplate struct {
+		Name         string        `json:"name"`
+		TemplateOnly bool          `json:"templateOnly"`
+		Html         template.HTML `json:"html"`
+	}
 )
-
-func (key TemplateKey) HasViewModel() bool {
-	return !strings.HasPrefix(string(key), "coolio-")
-}
 
 func NewViewModelFromRaw(view, yaml, html, js string) *ViewModel {
 	return &ViewModel{
@@ -130,38 +131,54 @@ func (v *ViewModel) Group() (g Group) {
 	return g
 }
 
-func (v *ViewModel) Parameters() []Parameter {
-	return v.Group().AllParameters()
+func (v *ViewModel) Overrides() template.HTML {
+	b, err := json.Marshal(v.Group().AllParameters())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return template.HTML(b)
 }
 
-func (v *ViewModel) Bundles() []template.HTML {
-	list := []template.HTML{}
-	traverseTemplates("bundles", ".js", func(path string, b []byte) {
-		list = append(list, template.HTML(b))
-	})
-	return list
-}
-
-func (v *ViewModel) Templates() map[TemplateKey]HTML {
-	dic := map[TemplateKey]HTML{}
+func (v *ViewModel) Templates() template.HTML {
+	list := []HtmlTemplate{}
 	traverseTemplates("html", ".html", func(path string, b []byte) {
 		filename := filepath.Base(path)
-		templateName := filename[:strings.LastIndex(filename, ".")]
+		name := filename[:strings.LastIndex(filename, ".")]
 
-		// tmpl := removeWhitespace(b)
-		// tmpl = strings.Replace(tmpl, "'", "\\'", -1)
+		tmpl := HtmlTemplate{
+			Name:         name,
+			TemplateOnly: strings.HasPrefix(string(name), "coolio-"),
+			Html:         template.HTML(HTML(b).Inline()),
+		}
 
-		dic[TemplateKey(templateName)] = HTML(b)
+		list = append(list, tmpl)
 	})
-	return dic
+
+	b, err := json.Marshal(list)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return template.HTML(b)
 }
 
-func (v *ViewModel) Javascript() []template.HTML {
-	list := []template.HTML{}
+func (v *ViewModel) Javascript() template.HTML {
+	buf := bytes.Buffer{}
 	traverseTemplates("js", ".js", func(path string, b []byte) {
-		list = append(list, template.HTML(b))
+		buf.Write(b)
 	})
-	return list
+	return template.HTML(buf.Bytes())
+}
+
+func (v *ViewModel) JsLibraries() template.HTML {
+	buf := bytes.Buffer{}
+	traverseTemplates("libs", ".js", func(path string, b []byte) {
+		buf.Write(b)
+	})
+	return template.HTML(buf.Bytes())
 }
 
 func (v *ViewModel) String() string {
@@ -226,9 +243,3 @@ func (v *ViewModel) Save() error {
 
 	return nil
 }
-
-// func removeWhitespace(b []byte) string {
-// 	tmpl := strings.Replace(string(b), "\n", "", -1)
-// 	tmpl = strings.Replace(tmpl, "\r", "", -1)
-// 	return strings.Replace(tmpl, "\t", "", -1)
-// }

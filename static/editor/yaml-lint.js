@@ -1,1 +1,0 @@
-../../bower_components/codemirror/addon/lint/yaml-lint.js

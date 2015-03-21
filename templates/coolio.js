@@ -1,25 +1,11 @@
+{{ .JsLibraries }}
 (function(win, doc, undefined) {
 
-	{{ range $js := .Javascript }}
-	{{$js}}
-	{{ end }}
+	{{ .Javascript }}
 
 	var container = '<div id="coolio" class="container-fluid" data-bind="component: { name: \'group\', params: $data }"></div>';
-	
-	var postbox = new ko.subscribable();
-
-	ko.subscribable.fn.subscribeTo = function(topic) {
-		postbox.subscribe(this, null, topic);
-		return this;  //support chaining
-	};
-
-	ko.subscribable.fn.publishOn = function(topic, broadcastOnInit) {
-		this.subscribe(function(newValue) {
-			postbox.notifySubscribers(newValue, topic);
-		});
-
-		return this; //support chaining
-	};
+	var templates = {{.Templates}};
+	var overrides = {{.Overrides}};
 
 	var Sharepoint = function() {
 		var self = this;
@@ -67,11 +53,11 @@
 				return 'textarea';
 			if (t === 'choice') {
 				if (schema.FormatType === 1) {
-					return 'radio'
+					return 'radio';
 				} else if (schema.FormatType === 2) {
-					return 'checkbox'
+					return 'checkbox';
 				}
-				return 'select'
+				return 'select';
 			}
 			if (t === 'lookup') {
 				return 'select';
@@ -80,50 +66,54 @@
 			return t;
 		};
 
-		var registerFormContext = function(name, ctx) {
-			var ctx = SPClientTemplates.Utility.GetFormContextForCurrentField(ctx);
-			var schema = ctx.fieldSchema;
+		var registerFormContext = function(name, ctx, readonly) {
+			var fromCtx = SPClientTemplates.Utility.GetFormContextForCurrentField(ctx);
+
+			if (!formCtx) {
+				return
+			}
+
+			var schema = fromCtx.fieldSchema;
+			var type = readonly ? 'static' : formatFieldType(schema);
 			
-			spContext[name] = ctx;
+			spContext[name] = fromCtx;
 			self[name] = {
 				name: schema.Name,
 				desc: schema.Description,
-				type: formatFieldType(schema),
+				type: type,
 				aux: {
 					readonly: schema.ReadOnlyField,
 					required: schema.Required,
 					maxLength: schema.MaxLength,
 					rows: schema.NumberOfLines,
-					options: getOptions(schema),
+					options: getOptions(schema)
 				},
-				value: ctx.fieldValue
+				value: fromCtx.fieldValue
 			};
-
-			return ctx;
 		};
 
-		var templateOverride = {
-			Templates: {
-				Fields: {
-					{{ range $param := .Parameters }}
-					'{{$param.Id}}': {
-						EditForm: function(ctx){
-							registerFormContext('{{$param.Id}}', ctx);
-						},
-						NewForm: function(ctx){
-							registerFormContext('{{$param.Id}}', ctx);
-						}
-					},
-					{{ end }}
+		var fields = {};
+
+		for(var i in overrides) {
+			var id = overrides[i];
+			fields[id] = {
+				'EditForm': function(ctx) {
+					registerFormContext(id, ctx, false);
+				}, 
+				'NewForm': function(ctx) {
+					registerFormContext(id, ctx, false);
+				},
+				'DisplayForm': function (ctx) {
+					registerFormContext(id, ctx, true);
 				}
-			}
-		};
+			};
+		}
 
-		try { SPClientTemplates.TemplateManager.RegisterTemplateOverrides(templateOverride);}
+		try { SPClientTemplates.TemplateManager.RegisterTemplateOverrides({ Templates: { Fields: fields } });}
 		catch(err) { }
 	};
 
-	var DataModelDefaults = {
+	var dataModelDefaults = {
 		id: '',
 		help: '',
 		params: [],
@@ -132,7 +122,7 @@
 	};
 
 	var DataModel = function(data) {
-		$.extend(this, DataModelDefaults, data);
+		$.extend(this, dataModelDefaults, data);
 
 		this.params = ko.utils.arrayMap(this.params, function(p) {
 			return new DataModel(p);
@@ -142,7 +132,7 @@
 		});
 
 		this.hasChildren = this.params.length > 0 || this.groups.length > 0;
-		
+
 		if (!this.type) {
 			this.type = this.hasChildren ? 'group': 'text';
 		}
@@ -150,7 +140,7 @@
 
 	var ViewModel = function(params) {
 		var data = ko.toJS(params.data || params);
-		data = $.extend({}, DataModelDefaults, coolio.sharepoint[data.id], data);
+		data = $.extend({}, dataModelDefaults, coolio.sharepoint[data.id], data);
 
 		this.id = ko.observable(data.id);
 		this.name = ko.observable(data.name || data.id);
@@ -162,7 +152,15 @@
 		this.aux = data.aux;
 
 		if (data.id) {
-			this.value.subscribeTo(data.id);
+			postbox.subscribe(function(newValue) {
+				if (this.value() !== newValue) {
+					this.value(newValue);
+				}
+			}, this, data.id);
+
+			this.value.subscribe(function(newValue) {
+				postbox.notifySubscribers(newValue, data.id);
+			});
 		}
 
 		this.hasHelp = ko.computed(function() {
@@ -176,15 +174,13 @@
 	};
 
 	var Templates = function() {
-		doc.write('{{.CustomHTML.Inline}}');
-		{{ range $key, $val := .Templates }}
-		doc.write('<template id="coolio-{{$key}}-template">{{$val.Inline}}</template>');
-		ko.components.register('{{$key}}', {
-			template: { element: 'coolio-{{$key}}-template' },
-			{{ if $key.HasViewModel }} viewModel: ViewModel {{end}}
-		});
-		this['{{$key}}'] = true;
-		{{ end}}
+		for (var i in templates) {
+			var tmpl = templates[i];
+			ko.components.register(tmpl.name, {
+				template: tmpl.html,
+				viewModel: tmpl.templateOnly ? null : ViewModel
+			});
+		}
 	};
 
 	Templates.prototype.register = function(name, viewModel) {
@@ -193,7 +189,6 @@
 			template: { element: name },
 			viewModel: viewModel || ViewModel
 		});
-		this[name] = true;
 	};
 
 	var coolio = {
@@ -204,12 +199,13 @@
 			postbox.subscribe(cb, context, topic);
 		},
 		notify: function(item, topic) {
+			console.log('Postbox; Topic:' + topic + ', Value: ' + item);
 			postbox.notifySubscribers(item, topic);
 		}
 	};
 
-	try { {{.CustomJS}} }
-	catch(err) { alert(err); }
+	{{if .CustomHTML}}doc.write('{{.CustomHTML.Inline}}');{{end}}
+	{{if .CustomJS}}try { {{.CustomJS}} } catch(err) { alert(err); }{{end}}
 
 	$().ready(function() {
 		var b = $('body'), f = $('.ms-formtable');

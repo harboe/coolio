@@ -1,1 +1,0 @@
-../../bower_components/codemirror/addon/hint/html-hint.js

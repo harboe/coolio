@@ -11,18 +11,17 @@ import (
 )
 
 var (
-	port  string
-	proxy string
+	port        string
+	proxy       string
+	templateDir string
 )
-
-// const port = "localhost:8080"
-// const proxy = "https://17afee27.ngrok.com"
 
 type context struct{}
 
 func main() {
-	flag.StringVar(&port, "port", "localhost:8080", "help message for flagname")
-	flag.StringVar(&proxy, "proxy", "", "help message for flagname")
+	flag.StringVar(&port, "port", "localhost:8080", "port")
+	flag.StringVar(&proxy, "proxy", "", "used with ngrok")
+	flag.StringVar(&templateDir, "template", "templates", "location of templates files, remember to run gulp.")
 	flag.Parse()
 
 	ctx := &context{}
@@ -39,8 +38,9 @@ func main() {
 	// index
 	r.GET("/", ctx.indexHandler)
 
-	r.ServeFiles("/static/*filepath", http.Dir("static"))
-	r.ServeFiles("/fonts/*filepath", http.Dir("static/fonts"))
+	// setup static content.
+	r.ServeFiles("/static/*filepath", http.Dir(templateDir+"/static"))
+	r.ServeFiles("/fonts/*filepath", http.Dir(templateDir+"/static/fonts"))
 
 	fmt.Printf("Coolio service ready at http://%s\n", port)
 	log.Fatal(http.ListenAndServe(port, r))
@@ -94,48 +94,6 @@ func (*context) editorHandler(w http.ResponseWriter, req *http.Request, ps route
 	t.Execute(w, v)
 }
 
-// func (*context) previewHandler(w http.ResponseWriter, req *http.Request, ps router.Params) {
-// 	var (
-// 		v        *ViewModel
-// 		err      error
-// 		writeErr = func(err error) {
-// 			w.WriteHeader(http.StatusInternalServerError)
-// 			w.Write([]byte(err.Error()))
-// 		}
-// 	)
-
-// 	if req.Method == "GET" {
-// 		if v, err = NewViewModel(ps.ByName("view"), ps.ByName("version")); err != nil {
-// 			writeErr(err)
-// 			return
-// 		}
-// 	} else {
-// 		defer req.Body.Close()
-// 		b, err := ioutil.ReadAll(req.Body)
-
-// 		if err != nil {
-// 			writeErr(err)
-// 			return
-// 		}
-
-// 		if v, err = NewViewModelFromRaw(b); err != nil {
-// 			writeErr(err)
-// 			return
-// 		}
-// 	}
-
-// 	t := GetJavascriptTemplate()
-// 	x, err := t.Bytes(v)
-
-// 	if err != nil {
-// 		writeErr(err)
-// 		return
-// 	}
-
-// 	preview := GetPreviewTemplate()
-// 	preview.Execute(w, template.JS(x))
-// }
-
 func (*context) saveHandler(w http.ResponseWriter, req *http.Request, ps router.Params) {
 	// form reader....
 	if err := req.ParseForm(); err != nil {
@@ -157,14 +115,12 @@ func (*context) saveHandler(w http.ResponseWriter, req *http.Request, ps router.
 	x, err := t.Bytes(v)
 
 	if err != nil {
-
+		log.Println("err:", err)
 		return
 	}
 
 	preview := GetPreviewTemplate()
 	preview.Execute(w, template.JS(x))
-
-	// log.Println("view:", v.View, "\nhtml:", req.FormValue("html"), "\njs:", req.FormValue("js"))
 }
 
 func (*context) indexHandler(w http.ResponseWriter, req *http.Request, ps router.Params) {

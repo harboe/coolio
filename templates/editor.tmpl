@@ -8,50 +8,13 @@
 
 	<title>Coolio</title>
 
-	<link href="/static/bootstrap.min.css" rel="stylesheet">
-	<link href="/static/editor/codemirror.css" rel="stylesheet">
-	<link href="/static/editor/show-hint.css" rel="stylesheet">
-	<link href="/static/editor/xq-light.css" rel="stylesheet">
-
-	<script src="/static/jquery.min.js"></script>	
-	<script src="/static/bootstrap.min.js"></script>
-	
-	<script src="/static/editor/jquery.hotkeys.js"></script>
-	<script src="/static/editor/codemirror.js"></script>
-	<script src="/static/editor/sublime.js"></script>
-	<script src="/static/editor/show-hint.js"></script>
-	<script src="/static/editor/css.js"></script>
-	<script src="/static/editor/css-hint.js"></script>
-	<script src="/static/editor/htmlembedded.js"></script>
-	<script src="/static/editor/html-hint.js"></script>
-	<script src="/static/editor/yaml.js"></script>
-	<script src="/static/editor/app.js"></script>
-
-	<style>
-	html, body, .fluid-container {
-		height: 100%;
-	}
-
-	#editor {
-		position: relative;
-	}
-
-	#editor .header {
-		position: absolute;
-		right: 40px;
-		top: 10px;
-		z-index: 500;
-
-		text-transform: uppercase;
-	}
-
-	.border {
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		display: block;	
-		width: 100%;
-	}
-	</style>
+	<!-- build:css static/css/editor.min.css -->
+	<link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="../bower_components/codemirror/lib/codemirror.css" rel="stylesheet">
+	<link href="../bower_components/codemirror/addon/hint/show-hint.css" rel="stylesheet">
+	<link href="../bower_components/codemirror/theme/xq-light.css" rel="stylesheet">
+	<link href="static/editor.css" rel="stylesheet">
+	<!-- endbuild -->  
 </head>
 <body>
 	<nav class="navbar navbar-default">
@@ -98,4 +61,20 @@
 		</div>
 	</div>
 	<input id="viewname" type="hidden" name="viewname" value="{{.View}}" />
+
+	<!-- build:js static/js/editor.min.js -->
+	<script src="../bower_components/jquery/dist/jquery.min.js"></script>	
+	<script src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+	
+	<script src="../bower_components/codemirror/lib/codemirror.js"></script>
+	<script src="../bower_components/codemirror/keymap/sublime.js"></script>
+	<script src="../bower_components/codemirror/addon/hint/show-hint.js"></script>
+	<script src="../bower_components/codemirror/addon/hint/css-hint.js"></script>
+	<script src="../bower_components/codemirror/addon/hint/html-hint.js"></script>
+	<script src="../bower_components/codemirror/addon/hint/javascript-hint.js"></script>
+	<script src="../bower_components/codemirror/mode/css/css.js"></script>
+	<script src="../bower_components/codemirror/mode/htmlembedded/htmlembedded.js"></script>
+	<script src="../bower_components/codemirror/mode/yaml/yaml.js"></script>
+	<script src="static/editor.js"></script>
+	<!-- endbuild -->
 </body>

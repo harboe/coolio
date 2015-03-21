@@ -1,4 +1,4 @@
-<label class="col-sm-4" data-bind="attr:{ 'for': viewModel.id }">
-	<span data-bind="text: viewModel.name"></span>&nbsp;
-	<i style="display: none" class="glyphicon glyphicon-question-sign" data-bind="visible: viewModel.hasHelp, attr: { title: viewModel.help }, toggle" data-toggle="tooltip" data-placement="top" title="Tooltip on right"></i>
+<label class="col-sm-4" data-bind="attr:{ 'for': id }">
+	<span data-bind="text: name"></span>&nbsp;
+	<i style="display: none" class="glyphicon glyphicon-question-sign" data-bind="visible: ko.unwrap(help), attr: { title: help }, toggle" data-toggle="tooltip" data-placement="top" title="Tooltip on right"></i>
 </label>

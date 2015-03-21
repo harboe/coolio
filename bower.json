@@ -18,5 +18,8 @@
     "knockout": "~3.3.0",
     "codemirror": "~5.0.0",
     "jquery.hotkeys": "*"
+  },
+  "devDependencies": {
+    "gulp": "~3.8.11"
   }
 }

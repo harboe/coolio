@@ -1,0 +1,1 @@
+document.write('<script src="/v1/sample/10/js"></script>');

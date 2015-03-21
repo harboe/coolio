@@ -1,1 +1,0 @@
-../bower_components/knockout/dist/knockout.js

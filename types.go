@@ -16,15 +16,15 @@ type (
 	}
 )
 
-func (g Group) AllParameters() (p []Parameter) {
+func (g Group) AllParameters() (p []string) {
 	recursive(&p, g)
 	return p
 }
 
-func recursive(list *[]Parameter, g Group) {
+func recursive(list *[]string, g Group) {
 	for _, p := range g.Parameters {
 		if len(p.Id) > 0 {
-			*list = append(*list, p)
+			*list = append(*list, p.Id)
 		}
 	}
 

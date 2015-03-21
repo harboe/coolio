@@ -6,6 +6,6 @@
 <!-- Tab panes -->
 <div class="tab-content" data-bind="foreach: groups">
 	<div class="tab-pane" data-bind="id: id, css: { 'active': $index() === 0 }">
-		<coolio-group params="viewModel: $data"></coolio-group>
+		<coolio-group params="data: $data"></coolio-group>
 	</div>
 </div>

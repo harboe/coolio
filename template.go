@@ -11,17 +11,13 @@ import (
 	"strings"
 )
 
-const (
-	templateDir = "templates"
-)
-
 type HTML template.HTML
 
 func (h HTML) Inline() template.HTML {
 	tmpl := strings.Replace(string(h), "\n", "", -1)
 	tmpl = strings.Replace(tmpl, "\r", "", -1)
 	tmpl = strings.Replace(tmpl, "\t", "", -1)
-	tmpl = strings.Replace(tmpl, "'", "\\'", -1)
+	// tmpl = strings.Replace(tmpl, "'", "\\'", -1)
 
 	return template.HTML(tmpl)
 }
@@ -48,6 +44,13 @@ func (t Template) Bytes(v interface{}) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+// // First we create a FuncMap with which to register the function.
+var funcMap = template.FuncMap{
+	"last": func(a, b interface{}) (interface{}, error) {
+		return a.(int) == b.(int), nil
+	},
+}
+
 func GetAssetTemplate() Template {
 	return Template{
 		template.Must(template.ParseFiles(templateDir + "/asset.tmpl")),
@@ -58,8 +61,7 @@ func GetAssetTemplate() Template {
 func GetJavascriptTemplate() Template {
 	return Template{template.Must(
 		template.ParseFiles(
-			templateDir+"/coolio.tmpl",
-			templateDir+"/sharepoint.js",
+			templateDir + "/coolio.js",
 		)),
 		"application/javascript",
 	}
@@ -80,7 +82,12 @@ func GetPreviewTemplate() Template {
 }
 
 func traverseTemplates(name, ext string, op func(path string, b []byte)) {
+	log.Println(templateDir, name, ext)
 	err := filepath.Walk(templateDir+"/"+name, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() || (len(ext) > 0 && filepath.Ext(path) != ext) {
 			return nil
 		}
