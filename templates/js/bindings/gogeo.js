@@ -6,7 +6,7 @@ var gogeo = {
 			var url = this.server + '/v1/' + this.provider + '/' + format;
 
 			if (this.apikey) {
-				url += '?key=' = this.apikey;
+				url += '?key=' + this.apikey;
 			}
 
 			return url;
@@ -21,8 +21,16 @@ var gogeo = {
 			url = this.baseUrl(format);
 			url += '?loc=' + location.lat + ',' + location.lng;
 
-			for (var i in args) {
-				url += '&' + i + '=' + args[i];
+			if (this['size']) {
+				url += '&size=' + this.size;
+			}
+
+			if (this['scale']) {
+				url += '&scale=' + this.scale;
+			}
+
+			if (this['zoom']) {
+				url += '&zoom=' + this.zoom;			
 			}
 
 			return encodeURI(url);
@@ -47,9 +55,7 @@ var gogeo = {
 	init: function(elm, valueAccessor, allBindings, viewModel, ctx) {
 		var $elm = $(elm);
 		var val = valueAccessor();
-
-		var opts = allBindings.get('gogeoOptions');
-		opts = ko.utils.extend(opts, gogeo.defaults);
+		var opts = $.extend({}, gogeo.defaults, allBindings.get('attr'));
 
 		if (!val) {
 			throw new Error('missing value bindings');
@@ -68,6 +74,7 @@ var gogeo = {
 			if (!newAddress || newAddress === '') {
 				val(null);
 				query('');
+				image(null);
 			} else {
 				self = true;
 				var url = opts.addressUrl('json', newAddress);
@@ -84,19 +91,26 @@ var gogeo = {
 
 					val(addr);
 					query(addr.address);
+					image(addr.location);
 					self = false;
 				}, this);
 			}
 		};
-		var image = function(newAddress) {
+		var image = function(newLocation) {
 			// remove the image.
 			$elm.next().remove();
 
-			if (newAddress) {
-				var url = opts.locationUrl('png', newAddress.location);
+			if (newLocation) {
+				var url = opts.locationUrl('png', newLocation);
 				$elm.parent().append('<br><img src="' + url + '" class="img-thumbnail img-responsive center-block" />');
 			}
 		};
+
+		$elm.keydown(function(e) {
+			if (e.which === 27) {
+				query('');
+			}
+		});
 
 		query.subscribe(lookupAddress);
 		val.subscribe(lookupAddress);

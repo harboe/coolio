@@ -1,0 +1,20 @@
+# root group
+#type: bootstrap
+params:
+  - id: SupplierName
+    desc: Supplier Name
+    type: text
+  - id: address
+    name: Supplier Address
+    type: address
+    help: bla bla bla ddc
+    aux:
+      zoom: 4
+      scale: 2
+  - name: Button
+    type: btn
+  - name: Elo SPou
+    type: test
+  - name: calc
+    type: calc
+

@@ -63,7 +63,7 @@ func latestVersion(view string) string {
 
 func nextVersion(view string) string {
 	ver, _ := strconv.ParseInt(latestVersion(view), 10, 0)
-	return fmt.Sprintf("%v", (ver + 1))
+	return fmt.Sprintf("%04v", (ver + 1))
 }
 
 func (v *ViewModel) JSON() template.HTML {
@@ -186,7 +186,7 @@ func (v *ViewModel) String() string {
 }
 
 func (v *ViewModel) ViewDir() string {
-	return fmt.Sprintf("views/%s/%s", v.View, v.Version)
+	return fmt.Sprintf("views/%s/%04s", v.View, v.Version)
 }
 
 func (v *ViewModel) Sum() string {
@@ -224,22 +224,5 @@ func (v *ViewModel) Save() error {
 	ioutil.WriteFile(dir+"/custom.js", []byte(v.customJS), os.ModePerm)
 
 	ioutil.WriteFile(dir+"/md5", []byte(v.Sum()), os.ModePerm)
-
-	// save sharepoint asset file
-	asset := GetAssetTemplate()
-	if b, err := asset.Bytes(v); err != nil {
-		return err
-	} else {
-		ioutil.WriteFile(dir+"/asset.js", b, os.ModePerm)
-	}
-
-	// save javascript file
-	js := GetJavascriptTemplate()
-	if b, err := js.Bytes(v); err != nil {
-		return err
-	} else {
-		ioutil.WriteFile(dir+"/coolio.js", b, os.ModePerm)
-	}
-
 	return nil
 }
