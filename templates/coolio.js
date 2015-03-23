@@ -163,10 +163,6 @@
 			});
 		}
 
-		this.hasHelp = ko.computed(function() {
-			return this.help().length > 0;
-		}, this);
-
 		this.params = ko.observableArray(data.params);
 		this.groups = ko.observableArray(data.groups);
 
@@ -216,8 +212,9 @@
 			$('#DeltaPlaceHolderMain').prepend(container);
 		}
 
+		ko.applyBindings(coolio, doc.getElementById('coolio'));
+
 		console.log('coolio says elo!');
 		console.log(coolio);
-		ko.applyBindings(coolio, doc.getElementById('coolio'));
 	});
 })(window, document);
