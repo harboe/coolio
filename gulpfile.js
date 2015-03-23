@@ -7,7 +7,8 @@ var del = require('del')
 , replacePath = require('gulp-replace-path')
 , uglify = require('gulp-uglify')
 , useref = require('gulp-useref')
-, util = require('gulp-util');
+, util = require('gulp-util')
+, strip = require('gulp-strip-comments');
 
 var env = (util.env.env || 'development');
 var dir = 'dist';
@@ -52,6 +53,7 @@ gulp.task('libs', function() {
 	];
 	
 	return gulp.src(files)
+	.pipe(strip())
 	.pipe(concat('coolio.libs.min.js'))
 	.pipe(gulp.dest(dir+'/libs'));
 });
