@@ -19,9 +19,9 @@ var (
 type context struct{}
 
 func main() {
-	flag.StringVar(&port, "port", "localhost:8080", "port")
+	flag.StringVar(&port, "p", "localhost:8080", "port")
 	flag.StringVar(&proxy, "proxy", "", "used with ngrok")
-	flag.StringVar(&templateDir, "template", "templates", "location of templates files, remember to run gulp.")
+	flag.StringVar(&templateDir, "dist", "dist", "location of templates files, remember to run gulp.")
 	flag.Parse()
 
 	ctx := &context{}
