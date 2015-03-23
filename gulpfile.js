@@ -57,7 +57,7 @@ gulp.task('libs', function() {
 });
 
 gulp.task('coolio', function() {
-	return gulp.src('./templates/coolio*.js')
+	return gulp.src('./templates/coolio.js')
 	.pipe(gulp.dest(dir));
 });
 
@@ -67,7 +67,21 @@ gulp.task('clean', function() {
 });
 
 gulp.task('css', function () {
-	// body...
+	var files = [
+	'bower_components/bootstrap/dist/css/bootstrap.min.css'
+	];
+	
+	return gulp.src(files)
+	.pipe(concat('coolio.min.css'))
+	.pipe(gulp.dest(dir+'/static/css'));
 });
 
-gulp.task('default', ['clean', 'tmpl','html', 'fonts', 'libs', 'js', 'coolio']);
+gulp.task('watch', function() {
+	gulp.watch('./templates/coolio.js', ['coolio']);
+	gulp.watch('./templates/html/**/*.html', ['html']);
+	gulp.watch('./templates/js/**/*.js', ['js']);
+	gulp.watch('./templates/*.tmpl', ['tmpl']);
+	gulp.watch('./templates/static/**/*', ['tmpl']);
+});
+
+gulp.task('default', ['clean', 'tmpl','html', 'css', 'fonts', 'libs', 'js', 'coolio', 'watch']);

@@ -30,6 +30,10 @@ ko.bindingHandlers.placeholder = {
 
 ko.bindingHandlers.type = {
 	update: function(elm, valueAccessor) {
-		$(elm).attr('type', ko.unwrap(valueAccessor()));
+		var val = ko.unwrap(valueAccessor());
+
+		if (val) {
+			$(elm).attr('type', ko.unwrap(valueAccessor()));
+		}
 	}
 };
